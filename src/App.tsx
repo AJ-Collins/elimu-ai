@@ -181,34 +181,47 @@ export default function App() {
 
     window.speechSynthesis.cancel();
     
-    // Clean text for speech
-    let cleanText = text
-      .replace(/#{1,6}\s+/g, '') // strip headings
-      .replace(/\*\*/g, '') // strip bold
-      .replace(/\*/g, '') // strip italics/lists
+    // Comprehensive cleaning for speech
+    const cleaned = text
+      .replace(/<[^>]*>/g, '') // strip HTML
+      .replace(/#{1,6}\s+/g, ' ') // strip headings
+      .replace(/\*\*/g, ' ') // strip bold
+      .replace(/\*/g, ' ') // strip lists/italics
       .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // strip links
-      .replace(/`/g, '') // strip code
+      .replace(/`([^`]+)`/g, '$1') // strip code
+      .replace(/```[\s\S]*?```/g, ' ') // strip code blocks
       .replace(/\^2/g, ' squared ')
       .replace(/\^3/g, ' cubed ')
       .replace(/sqrt\(([^)]+)\)/g, ' square root of $1 ')
-      .replace(/=>/g, ' therefore ')
-      .replace(/\+\-/g, ' plus or minus ')
-      .replace(/\//g, ' over ');
+      .replace(/\\sqrt\{([^}]+)\}/g, ' square root of $1 ')
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 over $2')
+      .replace(/=>|\\Rightarrow/g, ' therefore ')
+      .replace(/\+\-|\\pm/g, ' plus or minus ')
+      .replace(/\//g, ' over ')
+      .replace(/\+/g, ' plus ')
+      .replace(/(\d)\s*\*\s*(\d)/g, '$1 times $2')
+      .replace(/\$+/g, '') // strip LaTeX dollars
+      .replace(/[-*•]/g, ' ') // strip bullets
+      .replace(/\s+/g, ' ') // collapse spaces
+      .trim();
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const utterance = new SpeechSynthesisUtterance(cleaned);
     utterance.onend = () => setIsSpeaking(null);
     utterance.onerror = () => setIsSpeaking(null);
     utterance.rate = 0.92;
     
+    // Voice selection
     const voices = window.speechSynthesis.getVoices();
-    if (currentLanguage !== 'English') {
+    let selectedVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'));
+    if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en'));
+    
+    if (currentLanguage === 'Swahili') {
       const swVoice = voices.find(v => v.lang.startsWith('sw'));
-      if (swVoice) utterance.voice = swVoice;
-    } else {
-      const enVoice = voices.find(v => v.lang.startsWith('en'));
-      if (enVoice) utterance.voice = enVoice;
+      if (swVoice) selectedVoice = swVoice;
     }
 
+    if (selectedVoice) utterance.voice = selectedVoice;
+    
     setIsSpeaking(id);
     window.speechSynthesis.speak(utterance);
   };
@@ -892,68 +905,57 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col font-poppins selection:bg-gold/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/40 backdrop-blur-xl px-10 py-4 flex justify-between items-center transition-all">
-        <div className="font-oswald font-bold text-2xl uppercase tracking-tighter hover:scale-105 transition-transform cursor-pointer">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl px-4 md:px-8 py-4 flex justify-between items-center transition-all shadow-sm">
+        <div className="font-oswald font-bold text-xl md:text-2xl uppercase tracking-tighter hover:scale-105 transition-transform cursor-pointer">
           {t.title}
         </div>
-        <nav className="hidden md:flex gap-8 text-sm font-poppins font-medium">
-          <button 
-            onClick={() => setActiveTab('chat')}
-            className={`transition-all ${activeTab === 'chat' ? 'text-near-black opacity-100 border-b-2 border-forest pb-1' : 'text-secondary-gray opacity-60 hover:opacity-100'}`}
-          >
-            {t.chat_tab}
-          </button>
-          <button 
-            onClick={() => setActiveTab('practice')}
-            className={`transition-all ${activeTab === 'practice' ? 'text-near-black opacity-100 border-b-2 border-forest pb-1' : 'text-secondary-gray opacity-60 hover:opacity-100'}`}
-          >
-            {t.practice_tab}
-          </button>
-          <button 
-            onClick={() => setActiveTab('curriculum')}
-            className={`transition-all ${activeTab === 'curriculum' ? 'text-near-black opacity-100 border-b-2 border-forest pb-1' : 'text-secondary-gray opacity-60 hover:opacity-100'}`}
-          >
-            {t.curriculum_tab}
-          </button>
-          <button 
-            onClick={() => setActiveTab('saved')}
-            className={`transition-all ${activeTab === 'saved' ? 'text-near-black opacity-100 border-b-2 border-forest pb-1' : 'text-secondary-gray opacity-60 hover:opacity-100'}`}
-          >
-            {t.saved_tab}
-          </button>
+        <nav className="hidden md:flex flex-1 justify-center mx-4 md:mx-8 text-sm font-poppins font-medium">
+          <div className="flex w-full gap-2">
+            {(['chat', 'practice', 'curriculum', 'saved'] as const).map(tab => (
+              <button 
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-2 rounded-lg transition-all ${activeTab === tab ? 'text-near-black bg-sage/20 font-bold' : 'text-secondary-gray opacity-60 hover:opacity-100 hover:bg-gray-50'}`}
+              >
+                {t[`${tab}_tab` as any]}
+              </button>
+            ))}
+          </div>
         </nav>
-        <div className="flex items-center gap-2 text-xs font-poppins font-bold">
+        <div className="flex items-center gap-2 text-[10px] md:text-xs font-poppins font-bold whitespace-nowrap">
           <span className="w-2 h-2 bg-gold rounded-full shadow-[0_0_8px_rgba(249,168,37,0.8)] animate-pulse" />
-          {t.header_status}
+          <span className="hidden sm:inline">{t.header_status}</span>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-10 pb-20 px-4 text-center">
-        <h1 className="font-oswald font-bold text-[72px] text-near-black leading-[1] m-0 uppercase animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <section className="pt-8 pb-12 px-4 text-center">
+        <h1 className="font-oswald font-bold text-[48px] md:text-[72px] text-near-black leading-[1] m-0 uppercase">
           {t.title}
         </h1>
-        <p className="text-lg md:text-xl text-secondary-gray mt-2 font-poppins font-medium max-w-2xl mx-auto opacity-80">
+        <p className="text-base md:text-xl text-secondary-gray mt-2 font-poppins font-medium max-w-3xl mx-auto opacity-80">
           {t.subtitle}
         </p>
       </section>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-10 -mt-10 pb-20 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 relative z-10">
+      <main className="flex-1 w-full px-4 md:px-8 pb-24 flex flex-col gap-8 relative z-10">
         
-        {/* Left Column: Input & Responses */}
-        <div className="space-y-6">
-          <AnimatePresence mode="wait">
+        <div className="flex flex-col lg:flex-row gap-8 w-full">
+
+          {/* LEFT — Main Content: 3/4 width, full internal width */}
+          <div className="w-full lg:w-3/4 flex flex-col gap-6 min-w-0">
+            <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
               <motion.div 
                 key="chat-tab"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-6"
+                className="flex flex-col gap-6 w-full"
               >
-                {/* Input Card */}
-                <div className="card shadow-none border-none">
+                {/* Input Card — full width of its column */}
+                <div className="card shadow-none border-none w-full">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <span className="font-lato font-bold text-sm text-secondary-gray">{t.ask_label}</span>
                     <div className="bg-gray-100 p-1 rounded-full flex gap-1 relative overflow-hidden">
@@ -980,8 +982,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="relative group">
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+                    <div className="relative group w-full">
                       <textarea
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
@@ -1004,40 +1006,34 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1.2fr] gap-3">
-                      {/* Subject Select */}
-                      <div className="bg-gray-100 rounded-[12px] p-2 px-3 flex flex-col gap-0.5 group hover:bg-gray-200 transition-colors cursor-pointer relative">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1.2fr] gap-3 w-full">
+                      <div className="bg-gray-100 rounded-[12px] p-2 px-3 flex flex-col gap-0.5 hover:bg-gray-200 transition-colors cursor-pointer">
                         <span className="font-lato text-[11px] text-secondary-gray uppercase tracking-wider">{t.subject_label}</span>
-                        <div className="relative">
-                          <select 
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value as Subject)}
-                            className="bg-transparent appearance-none w-full font-poppins font-medium text-sm outline-none cursor-pointer"
-                          >
-                            <option>Mathematics</option>
-                            <option>Physics</option>
-                            <option>Chemistry</option>
-                            <option>Biology</option>
-                            <option>Computer Science</option>
-                          </select>
-                        </div>
+                        <select 
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value as Subject)}
+                          className="bg-transparent appearance-none w-full font-poppins font-medium text-sm outline-none cursor-pointer"
+                        >
+                          <option>Mathematics</option>
+                          <option>Physics</option>
+                          <option>Chemistry</option>
+                          <option>Biology</option>
+                          <option>Computer Science</option>
+                        </select>
                       </div>
 
-                      {/* Level Select */}
-                      <div className="bg-gray-100 rounded-[12px] p-2 px-3 flex flex-col gap-0.5 group hover:bg-gray-200 transition-colors cursor-pointer relative">
+                      <div className="bg-gray-100 rounded-[12px] p-2 px-3 flex flex-col gap-0.5 hover:bg-gray-200 transition-colors cursor-pointer">
                         <span className="font-lato text-[11px] text-secondary-gray uppercase tracking-wider">{t.level_label}</span>
-                        <div className="relative">
-                          <select 
-                            value={level}
-                            onChange={(e) => setLevel(e.target.value as Level)}
-                            className="bg-transparent appearance-none w-full font-poppins font-medium text-sm outline-none cursor-pointer"
-                          >
-                            <option>Class 7-8</option>
-                            <option>Form 1-2</option>
-                            <option>Form 3-4</option>
-                            <option>University</option>
-                          </select>
-                        </div>
+                        <select 
+                          value={level}
+                          onChange={(e) => setLevel(e.target.value as Level)}
+                          className="bg-transparent appearance-none w-full font-poppins font-medium text-sm outline-none cursor-pointer"
+                        >
+                          <option>Class 7-8</option>
+                          <option>Form 1-2</option>
+                          <option>Form 3-4</option>
+                          <option>University</option>
+                        </select>
                       </div>
 
                       <button
@@ -1055,8 +1051,8 @@ export default function App() {
                   </form>
                 </div>
 
-                {/* Response History */}
-                <div className="space-y-6">
+                {/* Response History — full width */}
+                <div className="flex flex-col gap-6 w-full">
                   {messages.length === 0 && (
                     <div className="text-center py-24 opacity-30">
                       <Sparkles size={64} className="mx-auto mb-4 text-forest" />
@@ -1069,6 +1065,7 @@ export default function App() {
                       key={msg.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
+                      className="w-full"
                     >
                       {msg.role === 'user' ? (
                         <div className="flex justify-end mb-4">
@@ -1091,21 +1088,21 @@ export default function App() {
                   <div ref={messagesEndRef} />
                 </div>
               </motion.div>
+
             ) : activeTab === 'practice' ? (
               <motion.div 
                 key="practice-tab"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
+                className="flex flex-col gap-6 w-full"
               >
-                {/* History horizontal scroll */}
                 {practiceHistory.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
                     <div className="flex items-center justify-between px-1">
                       <span className="text-[11px] font-bold text-secondary-gray uppercase tracking-widest">{t.history_label}</span>
                     </div>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+                    <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar w-full">
                       {practiceHistory.map((set) => (
                         <button 
                           key={set.id}
@@ -1122,8 +1119,8 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Practice Generator Form */}
-                <div className="card shadow-none border-none">
+                {/* Practice form — full width */}
+                <div className="card shadow-none border-none w-full">
                   <div className="flex items-center gap-2 mb-6">
                     <ClipboardList className="text-forest" size={24} />
                     <h2 className="font-raleway font-bold text-2xl">{t.practice_title}</h2>
@@ -1131,7 +1128,6 @@ export default function App() {
 
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Subject */}
                       <div className="bg-gray-100 rounded-xl p-3 px-4 flex flex-col gap-1">
                         <label className="text-[10px] font-bold text-secondary-gray uppercase tracking-wider">{t.subject_label}</label>
                         <select 
@@ -1147,7 +1143,6 @@ export default function App() {
                         </select>
                       </div>
 
-                      {/* Education Level */}
                       <div className="bg-gray-100 rounded-xl p-3 px-4 flex flex-col gap-1">
                         <label className="text-[10px] font-bold text-secondary-gray uppercase tracking-wider">{t.level_label}</label>
                         <select 
@@ -1163,8 +1158,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Topic Input */}
-                    <div className="bg-gray-100 rounded-xl p-3 px-4 flex flex-col gap-1">
+                    <div className="bg-gray-100 rounded-xl p-3 px-4 flex flex-col gap-1 w-full">
                       <label className="text-[10px] font-bold text-secondary-gray uppercase tracking-wider">{t.topic_label}</label>
                       <input 
                         type="text"
@@ -1175,7 +1169,6 @@ export default function App() {
                       />
                     </div>
 
-                    {/* Difficulty & Toggle Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-secondary-gray uppercase tracking-wider block px-1">{t.difficulty_label}</label>
@@ -1203,47 +1196,30 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Number of Questions Stepper */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-secondary-gray uppercase tracking-wider block px-1">{t.num_questions_label}</label>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center bg-gray-100 rounded-xl overflow-hidden p-1">
-                          <button 
-                            onClick={() => setNumQuestions(prev => Math.max(5, prev - 5))}
-                            className="p-2 hover:bg-gray-200 text-forest transition-colors rounded-lg"
-                          >
-                            <Minus size={18} />
-                          </button>
+                          <button onClick={() => setNumQuestions(prev => Math.max(5, prev - 5))} className="p-2 hover:bg-gray-200 text-forest transition-colors rounded-lg"><Minus size={18} /></button>
                           <div className="w-16 text-center font-bold font-oswald text-xl">{numQuestions}</div>
-                          <button 
-                            onClick={() => setNumQuestions(prev => Math.min(30, prev + 5))}
-                            className="p-2 hover:bg-gray-200 text-forest transition-colors rounded-lg"
-                          >
-                            <Plus size={18} />
-                          </button>
+                          <button onClick={() => setNumQuestions(prev => Math.min(30, prev + 5))} className="p-2 hover:bg-gray-200 text-forest transition-colors rounded-lg"><Plus size={18} /></button>
                         </div>
                         <span className="text-[10px] text-secondary-gray italic">(Range: 5 - 30)</span>
                       </div>
                     </div>
 
-                    {/* Question Types Multi-select */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-secondary-gray uppercase tracking-wider block px-1">{t.question_types_label}</label>
                       <div className="flex flex-wrap gap-2">
                         {(['Multiple Choice', 'Short Answer', 'True or False', 'Fill in the Blank', 'Long Answer / Essay'] as QuestionType[]).map((type) => {
                           const isSelected = selectedQuestionTypes.includes(type);
-                          const transKey = `q_type_${type.toLowerCase().includes('multiple') ? 'mcq' : 
-                                             type.toLowerCase().includes('short') ? 'short' :
-                                             type.toLowerCase().includes('true') ? 'tf' :
-                                             type.toLowerCase().includes('fill') ? 'fill' : 'long'}` as any;
+                          const transKey = `q_type_${type.toLowerCase().includes('multiple') ? 'mcq' : type.toLowerCase().includes('short') ? 'short' : type.toLowerCase().includes('true') ? 'tf' : type.toLowerCase().includes('fill') ? 'fill' : 'long'}` as any;
                           return (
                             <button
                               key={type}
                               onClick={() => {
                                 if (isSelected) {
-                                  if (selectedQuestionTypes.length > 1) {
-                                    setSelectedQuestionTypes(prev => prev.filter(t => t !== type));
-                                  }
+                                  if (selectedQuestionTypes.length > 1) setSelectedQuestionTypes(prev => prev.filter(t => t !== type));
                                 } else {
                                   setSelectedQuestionTypes(prev => [...prev, type]);
                                 }
@@ -1262,88 +1238,58 @@ export default function App() {
                       disabled={isGeneratingPractice || !practiceTopic.trim()}
                       className="w-full bg-forest text-white rounded-xl py-4 font-bold text-lg hover:bg-forest/90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-forest/10"
                     >
-                      {isGeneratingPractice ? (
-                        <>
-                          <RefreshCcw size={20} className="animate-spin" />
-                          {t.generating}
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles size={20} />
-                          {t.generate_btn}
-                        </>
-                      )}
+                      {isGeneratingPractice ? (<><RefreshCcw size={20} className="animate-spin" />{t.generating}</>) : (<><Sparkles size={20} />{t.generate_btn}</>)}
                     </button>
                   </div>
                 </div>
 
-                {/* Generated Results Card */}
+                {/* Generated Results — full width */}
                 {currentPracticeSet && (
                   <motion.div 
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="card shadow-md border-forest/10 space-y-6"
+                    className={`card shadow-md border-forest/10 space-y-6 w-full transition-all ${isSpeaking === currentPracticeSet.id ? 'reading-active' : ''}`}
                   >
-                    {/* Results Header */}
                     <div className="flex flex-wrap items-center gap-2 border-b border-gray-100 pb-4">
-                      <span className="badge bg-blue-50 text-blue-600 border-blue-100">{currentPracticeSet.subject}</span>
-                      <span className="badge bg-teal-50 text-teal-600 border-teal-100">{currentPracticeSet.topic}</span>
-                      <span className="badge bg-sage/20 text-forest border-forest/10">{currentPracticeSet.level}</span>
-                      <span className={`badge ${currentPracticeSet.difficulty === 'Easy' ? 'bg-green-50 text-green-600 border-green-100' : currentPracticeSet.difficulty === 'Medium' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                        {t[`difficulty_${currentPracticeSet.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'}`]}
-                      </span>
-                      <span className="badge bg-gold/10 text-near-black border-gold/20">{currentPracticeSet.numQuestions} {t.num_questions_label}</span>
+                      <div className="flex-1 flex justify-between items-center">
+                        <div className="flex flex-wrap gap-2">
+                          <span className="badge bg-blue-50 text-blue-600 border-blue-100">{currentPracticeSet.subject}</span>
+                          <span className="badge bg-teal-50 text-teal-600 border-teal-100">{currentPracticeSet.topic}</span>
+                          <span className="badge bg-sage/20 text-forest border-forest/10">{currentPracticeSet.level}</span>
+                          <span className={`badge ${currentPracticeSet.difficulty === 'Easy' ? 'bg-green-50 text-green-600 border-green-100' : currentPracticeSet.difficulty === 'Medium' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                            {t[`difficulty_${currentPracticeSet.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'}`]}
+                          </span>
+                          <span className="badge bg-gold/10 text-near-black border-gold/20">{currentPracticeSet.numQuestions} {t.num_questions_label}</span>
+                        </div>
+                        <button 
+                          onClick={() => speakText(currentPracticeSet.content, currentPracticeSet.id)}
+                          className={`p-2 rounded-lg transition-all ${isSpeaking === currentPracticeSet.id ? 'bg-gold text-white' : 'text-forest hover:bg-sage/10'}`}
+                        >
+                          {isSpeaking === currentPracticeSet.id ? <Square size={20} /> : <Volume2 size={20} />}
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Markdown Render */}
-                    <div className="markdown-body text-sm leading-relaxed prose prose-sm max-w-none">
+                    <div className="markdown-body text-sm leading-relaxed prose prose-sm max-w-none w-full">
                       <div dangerouslySetInnerHTML={{ __html: marked.parse(currentPracticeSet.content) }} />
                     </div>
 
-                    {/* Action Bar */}
                     <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-100">
-                      <button 
-                        onClick={() => handlePracticeGenerate(currentPracticeSet)}
-                        disabled={isGeneratingPractice}
-                        className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 rounded-xl font-bold text-xs text-secondary-gray hover:bg-gray-200 transition-all"
-                      >
-                        <RefreshCcw size={16} className={isGeneratingPractice ? 'animate-spin' : ''} />
-                        {t.regenerate}
+                      <button onClick={() => handlePracticeGenerate(currentPracticeSet)} disabled={isGeneratingPractice} className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 rounded-xl font-bold text-xs text-secondary-gray hover:bg-gray-200 transition-all">
+                        <RefreshCcw size={16} className={isGeneratingPractice ? 'animate-spin' : ''} />{t.regenerate}
                       </button>
-                      <button 
-                        onClick={() => {
-                          const newSave: SavedResponse = {
-                            id: Date.now().toString(),
-                            question: `Practice: ${currentPracticeSet.subject} - ${currentPracticeSet.topic}`,
-                            response: currentPracticeSet.content,
-                            subject: currentPracticeSet.subject,
-                            level: currentPracticeSet.level,
-                            languageMode: currentLanguage,
-                            timestamp: Date.now()
-                          };
-                          setSavedResponses(prev => [newSave, ...prev]);
-                          localStorage.setItem('elimu-saved', JSON.stringify([newSave, ...savedResponses]));
-                          setShowToast(t.saved_result);
-                          setTimeout(() => setShowToast(null), 3000);
-                        }}
-                        className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 bg-sage/20 text-forest rounded-xl font-bold text-xs hover:bg-sage/30 transition-all"
-                      >
-                        <Bookmark size={16} />
-                        {t.save_result}
+                      <button onClick={() => { const newSave: SavedResponse = { id: Date.now().toString(), question: `Practice: ${currentPracticeSet.subject} - ${currentPracticeSet.topic}`, response: currentPracticeSet.content, subject: currentPracticeSet.subject, level: currentPracticeSet.level, languageMode: currentLanguage, timestamp: Date.now() }; setSavedResponses(prev => [newSave, ...prev]); localStorage.setItem('elimu-saved', JSON.stringify([newSave, ...savedResponses])); setShowToast(t.saved_result); setTimeout(() => setShowToast(null), 3000); }} className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 bg-sage/20 text-forest rounded-xl font-bold text-xs hover:bg-sage/30 transition-all">
+                        <Bookmark size={16} />{t.save_result}
                       </button>
-                      <button 
-                        onClick={() => handleDownloadPDF(currentPracticeSet)}
-                        className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 bg-forest text-white rounded-xl font-bold text-xs hover:bg-forest/90 transition-all shadow-md shadow-forest/20"
-                      >
-                        <Download size={16} />
-                        {t.download_pdf}
+                      <button onClick={() => handleDownloadPDF(currentPracticeSet)} className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 bg-forest text-white rounded-xl font-bold text-xs hover:bg-forest/90 transition-all shadow-md shadow-forest/20">
+                        <Download size={16} />{t.download_pdf}
                       </button>
                     </div>
                   </motion.div>
                 )}
-                
+
                 {!currentPracticeSet && !isGeneratingPractice && (
-                  <div className="card py-20 text-center gap-4 border-dashed border-2 border-gray-200 bg-transparent shadow-none">
+                  <div className="card py-20 text-center gap-4 border-dashed border-2 border-gray-200 bg-transparent shadow-none w-full">
                     <ClipboardList className="mx-auto text-secondary-gray/30" size={64} />
                     <div className="space-y-1">
                       <h3 className="font-raleway font-bold text-xl text-secondary-gray">{t.practice_empty_title}</h3>
@@ -1352,33 +1298,27 @@ export default function App() {
                   </div>
                 )}
               </motion.div>
+
             ) : activeTab === 'curriculum' ? (
               <motion.div 
                 key="curriculum-tab"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="flex flex-col gap-8 w-full"
               >
+                {/* All curriculum views remain exactly as they were — full width inside this column */}
                 {curriculumView === 'grid' && (
-                  <div className="space-y-8">
-                    {/* Weak Areas Banner */}
+                  <div className="space-y-8 w-full">
                     {getWeakAreas().length > 0 && (
-                      <div className="card border-red-200 bg-red-50/30">
+                      <div className="card border-red-200 bg-red-50/30 w-full">
                         <div className="flex items-center gap-2 mb-4">
                           <Zap className="text-red-600" size={20} />
                           <h3 className="font-raleway font-bold text-lg text-red-900">{t.weak_areas}</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {getWeakAreas().map(area => (
-                            <button 
-                              key={area.topicId}
-                              onClick={() => {
-                                setSelectedCurriculumSubject(area.topicName as any); // Simple link
-                                setCurriculumView('topics');
-                              }}
-                              className="bg-white border border-red-100 px-3 py-1.5 rounded-full text-xs font-bold text-red-700 flex items-center gap-2 hover:bg-red-50 transition-all"
-                            >
+                            <button key={area.topicId} onClick={() => { setSelectedCurriculumSubject(area.topicName as any); setCurriculumView('topics'); }} className="bg-white border border-red-100 px-3 py-1.5 rounded-full text-xs font-bold text-red-700 flex items-center gap-2 hover:bg-red-50 transition-all">
                               {area.topicName} <span className="opacity-60">{area.score}/{area.total}</span>
                             </button>
                           ))}
@@ -1386,67 +1326,40 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Bookmarked Topics */}
                     {Object.entries(curriculumState).some(([_, s]) => (s as TopicStatus).isBookmarked) && (
-                      <div className="card border-gold/20 bg-gold/5">
+                      <div className="card border-gold/20 bg-gold/5 w-full">
                         <div className="flex items-center gap-2 mb-4">
                           <Heart className="text-gold" size={20} fill="currentColor" />
                           <h3 className="font-raleway font-bold text-lg">{t.bookmarked_topics || "Bookmarked Topics"}</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {(Object.entries(curriculumState) as [string, TopicStatus][]).filter(([_, s]) => s.isBookmarked).map(([id, _]) => {
-                            // Find topic name from syllabus data
                             let topicName = "Unknown Topic";
                             for (const subjTopics of Object.values(syllabusData)) {
                               const found = subjTopics.find(t => t.id === id);
-                              if (found) {
-                                topicName = found.name;
-                                break;
-                              }
+                              if (found) { topicName = found.name; break; }
                             }
-                            return (
-                              <button 
-                                key={id}
-                                className="bg-white border border-gold/10 px-3 py-1.5 rounded-full text-xs font-bold text-near-black flex items-center gap-2 hover:bg-gold/10 transition-all shadow-sm"
-                              >
-                                {topicName}
-                              </button>
-                            );
+                            return (<button key={id} className="bg-white border border-gold/10 px-3 py-1.5 rounded-full text-xs font-bold text-near-black flex items-center gap-2 hover:bg-gold/10 transition-all shadow-sm">{topicName}</button>);
                           })}
                         </div>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
                       {(['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'] as Subject[]).map(subj => {
                         const prog = getSubjectProgress(subj);
                         return (
                           <div key={subj} className="card hover:border-gold transition-all group overflow-hidden relative">
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                              <BookOpen size={64} />
-                            </div>
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><BookOpen size={64} /></div>
                             <h3 className="font-raleway font-bold text-lg mb-2">{subj}</h3>
                             <div className="space-y-3 mt-4">
                               <div className="flex justify-between items-center text-xs font-bold text-secondary-gray uppercase tracking-widest">
-                                <span>{t.study_progress}</span>
-                                <span>{prog}%</span>
+                                <span>{t.study_progress}</span><span>{prog}%</span>
                               </div>
                               <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <motion.div 
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${prog}%` }}
-                                  className="h-full bg-gradient-to-r from-forest to-gold"
-                                />
+                                <motion.div initial={{ width: 0 }} animate={{ width: `${prog}%` }} className="h-full bg-gradient-to-r from-forest to-gold" />
                               </div>
-                              <button 
-                                onClick={() => {
-                                  setSelectedCurriculumSubject(subj);
-                                  setCurriculumView('topics');
-                                }}
-                                className="w-full bg-forest text-white py-2 rounded-lg font-bold text-sm mt-2 hover:bg-forest/90 shadow-sm"
-                              >
-                                {t.open_syllabus}
-                              </button>
+                              <button onClick={() => { setSelectedCurriculumSubject(subj); setCurriculumView('topics'); }} className="w-full bg-forest text-white py-2 rounded-lg font-bold text-sm mt-2 hover:bg-forest/90 shadow-sm">{t.open_syllabus}</button>
                             </div>
                           </div>
                         );
@@ -1456,91 +1369,41 @@ export default function App() {
                 )}
 
                 {curriculumView === 'topics' && (
-                  <div className="space-y-6">
+                  <div className="flex flex-col gap-6 w-full">
                     <div className="flex items-center gap-4">
-                      <button 
-                        onClick={() => setCurriculumView('grid')}
-                        className="p-2 hover:bg-gray-100 rounded-full text-secondary-gray transition-all"
-                      >
-                        <RefreshCcw className="rotate-[-45deg]" size={20} />
-                      </button>
+                      <button onClick={() => setCurriculumView('grid')} className="p-2 hover:bg-gray-100 rounded-full text-secondary-gray transition-all"><RefreshCcw className="rotate-[-45deg]" size={20} /></button>
                       <h2 className="font-oswald font-bold text-3xl uppercase">{selectedCurriculumSubject}</h2>
                     </div>
-
-                    <div className="flex bg-gray-100 p-1 rounded-full gap-1 overflow-x-auto scrollbar-hide no-scrollbar">
+                    <div className="flex bg-gray-100 p-1 rounded-full gap-1 overflow-x-auto no-scrollbar w-full">
                       {([1, 2, 3, 4] as const).map(f => (
-                        <button
-                          key={f}
-                          onClick={() => setSelectedCurriculumForm(f)}
-                          className={`flex-1 py-2 px-6 rounded-full text-xs font-bold transition-all whitespace-nowrap ${selectedCurriculumForm === f ? 'bg-forest text-white shadow-sm' : 'text-secondary-gray hover:bg-gray-200'}`}
-                        >
-                          {t.form_label} {f}
-                        </button>
+                        <button key={f} onClick={() => setSelectedCurriculumForm(f)} className={`flex-1 py-2 px-6 rounded-full text-xs font-bold transition-all whitespace-nowrap ${selectedCurriculumForm === f ? 'bg-forest text-white shadow-sm' : 'text-secondary-gray hover:bg-gray-200'}`}>{t.form_label} {f}</button>
                       ))}
                     </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                       <button onClick={handleFormulaeStart} className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5">
-                         <Zap size={16} /> {t.formulae}
-                       </button>
-                       <button onClick={handlePastPapersStart} className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5">
-                         <History size={16} /> {t.past_papers}
-                       </button>
-                       <button className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5 opacity-50 cursor-not-allowed">
-                         <Search size={16} /> {t.concept_map}
-                       </button>
-                       <button onClick={handleRevisionPlannerStart} className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5">
-                         <Plus size={16} /> {t.revision_planner}
-                       </button>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
+                      <button onClick={handleFormulaeStart} className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5"><Zap size={16} /> {t.formulae}</button>
+                      <button onClick={handlePastPapersStart} className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5"><History size={16} /> {t.past_papers}</button>
+                      <button className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5 opacity-50 cursor-not-allowed"><Search size={16} /> {t.concept_map}</button>
+                      <button onClick={handleRevisionPlannerStart} className="bg-sage/10 text-forest p-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 hover:bg-sage/20 border border-forest/5"><Plus size={16} /> {t.revision_planner}</button>
                     </div>
-
-                    <div className="space-y-3">
+                    <div className="flex flex-col gap-3 w-full">
                       {syllabusData[selectedCurriculumSubject!].filter(t => t.form === selectedCurriculumForm).map(topic => {
                         const status = curriculumState[topic.id]?.status || 'Not Started';
                         const isBookmarked = curriculumState[topic.id]?.isBookmarked;
                         return (
-                          <div key={topic.id} className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm hover:shadow-md transition-all">
+                          <div key={topic.id} className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm hover:shadow-md transition-all w-full">
                             <div className="flex items-center justify-between gap-4 mb-4">
                               <div className="flex items-center gap-3">
-                                <button 
-                                  onClick={() => handleBookmarkToggle(topic.id)}
-                                  className={`transition-all ${isBookmarked ? 'text-gold' : 'text-gray-300 hover:text-gold'}`}
-                                >
-                                  <Bookmark size={20} fill={isBookmarked ? 'currentColor' : 'none'} />
-                                </button>
+                                <button onClick={() => handleBookmarkToggle(topic.id)} className={`transition-all ${isBookmarked ? 'text-gold' : 'text-gray-300 hover:text-gold'}`}><Bookmark size={20} fill={isBookmarked ? 'currentColor' : 'none'} /></button>
                                 <span className="font-poppins font-medium text-sm">{topic.name}</span>
                               </div>
-                              <button 
-                                onClick={() => handleTopicStatusCycle(topic.id)}
-                                className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all ${
-                                  status === 'Mastered' ? 'bg-green-50 text-green-600 border-green-200' :
-                                  status === 'In Progress' ? 'bg-orange-50 text-orange-600 border-orange-200' :
-                                  'bg-gray-50 text-gray-400 border-gray-200'
-                                }`}
-                              >
+                              <button onClick={() => handleTopicStatusCycle(topic.id)} className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all ${status === 'Mastered' ? 'bg-green-50 text-green-600 border-green-200' : status === 'In Progress' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
                                 {status === 'Mastered' ? t.mastered : status === 'In Progress' ? t.in_progress : t.not_started}
                               </button>
                             </div>
-                            
                             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-50">
-                              <button 
-                                onClick={() => handleLessonStart(topic)}
-                                className="flex-1 py-2 px-3 bg-sage/10 text-forest rounded-lg font-bold text-xs hover:bg-sage/20 transition-all flex items-center justify-center gap-2"
-                              >
-                                <BookOpen size={14} /> {t.teach_me}
-                              </button>
-                              <button 
-                                onClick={() => handleTestStart(topic)}
-                                className="flex-1 py-2 px-3 bg-gold/10 text-near-black rounded-lg font-bold text-xs hover:bg-gold/20 transition-all flex items-center justify-center gap-2"
-                              >
-                                <Sparkles size={14} /> {t.mini_test}
-                              </button>
-                              <button 
-                                onClick={() => handleSummaryStart(topic)}
-                                className="flex-1 py-2 px-3 bg-gray-50 text-secondary-gray rounded-lg font-bold text-xs hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
-                              >
-                                <ClipboardList size={14} /> {t.summary}
-                              </button>
+                              <button onClick={() => handleLessonStart(topic)} className="flex-1 py-2 px-3 bg-sage/10 text-forest rounded-lg font-bold text-xs hover:bg-sage/20 transition-all flex items-center justify-center gap-2"><BookOpen size={14} /> {t.teach_me}</button>
+                              <button onClick={() => handleTestStart(topic)} className="flex-1 py-2 px-3 bg-gold/10 text-near-black rounded-lg font-bold text-xs hover:bg-gold/20 transition-all flex items-center justify-center gap-2"><Sparkles size={14} /> {t.mini_test}</button>
+                              <button onClick={() => handleSummaryStart(topic)} className="flex-1 py-2 px-3 bg-gray-50 text-secondary-gray rounded-lg font-bold text-xs hover:bg-gray-100 transition-all flex items-center justify-center gap-2"><ClipboardList size={14} /> {t.summary}</button>
                             </div>
                           </div>
                         );
@@ -1550,70 +1413,30 @@ export default function App() {
                 )}
 
                 {curriculumView === 'content' && (
-                  <div className="space-y-6">
-                    <button 
-                      onClick={() => setCurriculumView('topics')}
-                      className="text-sm font-bold text-forest flex items-center gap-2 hover:underline"
-                    >
-                      <RefreshCcw className="rotate-[-45deg]" size={16} /> Back to Topics
-                    </button>
-
+                  <div className="flex flex-col gap-6 w-full">
+                    <button onClick={() => setCurriculumView('topics')} className="text-sm font-bold text-forest flex items-center gap-2 hover:underline self-start"><RefreshCcw className="rotate-[-45deg]" size={16} /> Back to Topics</button>
                     {isLoadingCurriculum ? (
-                      <div className="py-20 text-center animate-pulse">
+                      <div className="py-20 text-center animate-pulse w-full">
                         <div className="w-16 h-16 border-4 border-forest border-t-transparent rounded-full mx-auto mb-4 animate-spin" />
                         <p className="font-raleway font-bold text-xl">{t.thinking}...</p>
                       </div>
                     ) : curriculumContent && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`card relative overflow-visible ${isSpeaking === curriculumContent.title ? 'border-l-4 border-gold' : ''}`}
-                      >
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`card w-full relative overflow-visible transition-all ${isSpeaking === curriculumContent.title ? 'reading-active' : ''}`}>
                         <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
                           <h2 className="font-raleway font-bold text-2xl">{curriculumContent.title}</h2>
                           <div className="flex gap-2">
-                             <button 
-                              onClick={() => speakText(curriculumContent.content, curriculumContent.title)}
-                              className={`p-2 rounded-lg transition-all ${isSpeaking === curriculumContent.title ? 'bg-gold text-white' : 'text-forest hover:bg-sage/10'}`}
-                              title={t.read_aloud}
-                            >
-                              {isSpeaking === curriculumContent.title ? <Square size={20} /> : <Volume2 size={20} />}
-                            </button>
-                            <button 
-                              onClick={() => {
-                                const dummyPractice: PracticeSet = {
-                                  id: Date.now().toString(),
-                                  subject: selectedCurriculumSubject || 'General',
-                                  topic: curriculumContent.title,
-                                  level: `Form ${selectedCurriculumForm}` as Level,
-                                  difficulty: 'Medium',
-                                  numQuestions: 0,
-                                  questionTypes: [],
-                                  includeAnswers: false,
-                                  content: curriculumContent.content,
-                                  timestamp: Date.now()
-                                };
-                                handleDownloadPDF(dummyPractice);
-                              }}
-                              className="p-2 text-forest hover:bg-sage/10 rounded-lg transition-all"
-                            >
-                              <Download size={20} />
-                            </button>
+                            <button onClick={() => speakText(curriculumContent.content, curriculumContent.title)} className={`p-2 rounded-lg transition-all ${isSpeaking === curriculumContent.title ? 'bg-gold text-white' : 'text-forest hover:bg-sage/10'}`} title={t.read_aloud}>{isSpeaking === curriculumContent.title ? <Square size={20} /> : <Volume2 size={20} />}</button>
+                            <button onClick={() => { const dummyPractice: PracticeSet = { id: Date.now().toString(), subject: selectedCurriculumSubject || 'General', topic: curriculumContent.title, level: `Form ${selectedCurriculumForm}` as Level, difficulty: 'Medium', numQuestions: 0, questionTypes: [], includeAnswers: false, content: curriculumContent.content, timestamp: Date.now() }; handleDownloadPDF(dummyPractice); }} className="p-2 text-forest hover:bg-sage/10 rounded-lg transition-all"><Download size={20} /></button>
                           </div>
                         </div>
-                        <div className="markdown-body">
+                        <div className="markdown-body w-full">
                           <div dangerouslySetInnerHTML={{ __html: marked.parse(curriculumContent.content) }} />
                         </div>
-                        
                         <div className="mt-10 pt-6 border-t border-gray-100">
-                           <h4 className="font-bold text-sm mb-3 opacity-60 uppercase">{t.related_topics}</h4>
-                           <div className="flex flex-wrap gap-2">
-                             {['Coming Soon...', 'Next Topic', 'Advanced Concept'].map(chip => (
-                               <button key={chip} className="bg-sage/10 text-forest px-4 py-2 rounded-full text-xs font-bold hover:bg-sage/20 transition-all">
-                                 {chip}
-                               </button>
-                             ))}
-                           </div>
+                          <h4 className="font-bold text-sm mb-3 opacity-60 uppercase">{t.related_topics}</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {['Coming Soon...', 'Next Topic', 'Advanced Concept'].map(chip => (<button key={chip} className="bg-sage/10 text-forest px-4 py-2 rounded-full text-xs font-bold hover:bg-sage/20 transition-all">{chip}</button>))}
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -1621,48 +1444,22 @@ export default function App() {
                 )}
 
                 {curriculumView === 'test' && activeTest && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm">
+                  <div className="flex flex-col gap-6 w-full">
+                    <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm w-full">
                       <div className="flex items-center gap-3">
-                        <span className="w-10 h-10 rounded-full bg-forest text-white flex items-center justify-center font-bold">
-                          {currentTestIndex + 1}/5
-                        </span>
+                        <span className="w-10 h-10 rounded-full bg-forest text-white flex items-center justify-center font-bold">{currentTestIndex + 1}/5</span>
                         <h3 className="font-raleway font-bold">Mini Test: {selectedCurriculumSubject}</h3>
                       </div>
-                      <div className="flex items-center gap-2 text-red-600 font-bold font-mono">
-                        <Clock size={16} /> 04:59
-                      </div>
+                      <div className="flex items-center gap-2 text-red-600 font-bold font-mono"><Clock size={16} /> 04:59</div>
                     </div>
-
-                    <div className="card">
+                    <div className="card w-full">
                       <h4 className="text-xl font-poppins mb-8">{activeTest[currentTestIndex].question}</h4>
-                      
                       <div className="space-y-3">
                         {activeTest[currentTestIndex].options ? (
                           activeTest[currentTestIndex].options.map((opt: string, i: number) => {
                             const letter = String.fromCharCode(65 + i);
                             return (
-                              <button 
-                                key={i}
-                                onClick={() => {
-                                  const isCorrect = letter === activeTest[currentTestIndex].answer;
-                                  setTestResults(prev => [...prev, {
-                                    question: activeTest[currentTestIndex].question,
-                                    selected: letter,
-                                    correct: activeTest[currentTestIndex].answer,
-                                    isCorrect,
-                                    explanation: activeTest[currentTestIndex].explanation
-                                  }]);
-                                  if (isCorrect) setTestScore(prev => prev + 1);
-                                  
-                                  if (currentTestIndex < 4) {
-                                    setCurrentTestIndex(prev => prev + 1);
-                                  } else {
-                                    handleTestComplete(testScore + (isCorrect ? 1 : 0), 5);
-                                  }
-                                }}
-                                className="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-gold hover:bg-gold/5 transition-all flex gap-4 items-center group"
-                              >
+                              <button key={i} onClick={() => { const isCorrect = letter === activeTest[currentTestIndex].answer; setTestResults(prev => [...prev, { question: activeTest[currentTestIndex].question, selected: letter, correct: activeTest[currentTestIndex].answer, isCorrect, explanation: activeTest[currentTestIndex].explanation }]); if (isCorrect) setTestScore(prev => prev + 1); if (currentTestIndex < 4) { setCurrentTestIndex(prev => prev + 1); } else { handleTestComplete(testScore + (isCorrect ? 1 : 0), 5); } }} className="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-gold hover:bg-gold/5 transition-all flex gap-4 items-center group">
                                 <span className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center font-bold group-hover:bg-gold group-hover:text-white">{letter}</span>
                                 <span className="font-medium">{opt}</span>
                               </button>
@@ -1671,12 +1468,7 @@ export default function App() {
                         ) : (
                           <div className="space-y-4">
                             <textarea placeholder="Type your answer here..." className="w-full p-4 border border-gray-200 rounded-xl h-32 outline-none focus:border-forest" />
-                            <button 
-                              onClick={() => setCurrentTestIndex(prev => prev + 1)}
-                              className="w-full bg-forest text-white py-3 rounded-xl font-bold"
-                            >
-                              Submit Answer
-                            </button>
+                            <button onClick={() => setCurrentTestIndex(prev => prev + 1)} className="w-full bg-forest text-white py-3 rounded-xl font-bold">Submit Answer</button>
                           </div>
                         )}
                       </div>
@@ -1684,50 +1476,32 @@ export default function App() {
                   </div>
                 )}
               </motion.div>
+
             ) : (
               <motion.div 
                 key="saved-tab"
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                className="space-y-6"
+                className="flex flex-col gap-6 w-full"
               >
                 {savedResponses.length === 0 ? (
-                  <div className="card py-20 text-center gap-6">
-                    <div className="w-20 h-20 bg-sage/20 rounded-full flex items-center justify-center mx-auto text-forest opacity-40">
-                      <History size={48} />
-                    </div>
+                  <div className="card py-20 text-center gap-6 w-full">
+                    <div className="w-20 h-20 bg-sage/20 rounded-full flex items-center justify-center mx-auto text-forest opacity-40"><History size={48} /></div>
                     <div className="space-y-2">
                       <h3 className="text-2xl font-raleway font-bold">📚 {t.saved_empty_title}</h3>
                       <p className="text-secondary-gray opacity-70">{t.saved_empty_text}</p>
                     </div>
-                    <button 
-                      onClick={() => setActiveTab('chat')}
-                      className="bg-forest text-white rounded-[10px] px-6 py-3 font-semibold transition-all hover:bg-forest/90 active:scale-95 max-w-xs mx-auto"
-                    >
-                      {t.start_chat_btn}
-                    </button>
+                    <button onClick={() => setActiveTab('chat')} className="bg-forest text-white rounded-[10px] px-6 py-3 font-semibold transition-all hover:bg-forest/90 active:scale-95 max-w-xs mx-auto">{t.start_chat_btn}</button>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="flex flex-col gap-6 w-full">
                     {savedResponses.map(save => (
                       <ResponseCard 
                         key={save.id}
-                        msg={{
-                          id: save.id,
-                          role: 'assistant',
-                          content: save.response,
-                          subject: save.subject as any,
-                          level: save.level as any,
-                          languageMode: save.languageMode as any,
-                          timestamp: save.timestamp
-                        }}
+                        msg={{ id: save.id, role: 'assistant', content: save.response, subject: save.subject as any, level: save.level as any, languageMode: save.languageMode as any, timestamp: save.timestamp }}
                         isSaved={true}
-                        onSave={() => {
-                          const updated = savedResponses.filter(s => s.id !== save.id);
-                          setSavedResponses(updated);
-                          localStorage.setItem('elimu-saved', JSON.stringify(updated));
-                        }}
+                        onSave={() => { const updated = savedResponses.filter(s => s.id !== save.id); setSavedResponses(updated); localStorage.setItem('elimu-saved', JSON.stringify(updated)); }}
                         question={save.question}
                         isSpeaking={isSpeaking === save.id}
                         onSpeak={() => speakText(save.response, save.id)}
@@ -1737,100 +1511,88 @@ export default function App() {
                 )}
               </motion.div>
             )}
-          </AnimatePresence>
-        </div>
-
-        {/* Right Column: Widgets */}
-        <div className="space-y-6 sticky top-24 h-fit">
-          
-          {/* Daily Challenge Gadget */}
-          <div className="card relative overflow-hidden group border border-gold/10 hover:border-gold/30 transition-all">
-            <div className="font-lato font-bold text-[13px] text-secondary-gray/70">{t.daily_challenge_label}</div>
-            
-            {!dailyChallenge ? (
-              <div className="space-y-4 py-4">
-                <div className="h-4 bg-gray-100 rounded-full w-full animate-pulse" />
-                <div className="h-4 bg-gray-100 rounded-full w-2/3 animate-pulse" />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <h4 className="font-raleway font-bold text-lg leading-snug">{dailyChallenge.question.includes('?') ? dailyChallenge.question.split('?')[0] + '?' : dailyChallenge.question}</h4>
-                {dailyChallenge.question.includes('?') && (
-                  <p className="text-sm text-secondary-gray/80 line-clamp-3">
-                    {dailyChallenge.question.split('?')[1]}
-                  </p>
-                )}
-                
-                <AnimatePresence>
-                  {showChallengeAnswer && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      className="bg-gold/5 p-4 rounded-xl text-sm border-l-4 border-gold italic text-near-black font-medium"
-                    >
-                      {dailyChallenge.answer}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <button 
-                  onClick={() => setShowChallengeAnswer(!showChallengeAnswer)}
-                  className="w-full py-2 border border-forest text-forest hover:bg-forest/5 font-poppins font-bold rounded-lg text-sm transition-all active:scale-95"
-                >
-                  {showChallengeAnswer ? t.hide_answer : t.see_answer}
-                </button>
-              </div>
-            )}
+            </AnimatePresence>
           </div>
 
-          {/* Saved Topics Sidebar Widget */}
-          <div className="card flex-1 min-h-[400px]">
-            <div className="font-lato font-bold text-[13px] text-secondary-gray/70 mb-4 uppercase tracking-wider">{t.saved_topics_label}</div>
-            
-            <div className="space-y-4">
-              {savedResponses.length > 0 ? (
-                savedResponses.slice(0, 5).map((save) => (
-                  <div key={save.id} className="flex items-center gap-3 group cursor-pointer" onClick={() => setActiveTab('saved')}>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition-all group-hover:scale-110 ${
-                      save.subject === 'Mathematics' ? 'bg-blue-50 text-blue-600' :
-                      save.subject === 'Physics' ? 'bg-teal-50 text-teal-600' :
-                      save.subject === 'Chemistry' ? 'bg-orange-50 text-orange-600' :
-                      save.subject === 'Biology' ? 'bg-green-50 text-green-600' :
-                      'bg-gray-50 text-gray-600'
-                    }`}>
-                      {save.subject && save.subject[0]}
+          {/* RIGHT SIDEBAR — 1/4 width, desktop only */}
+          <div className="hidden lg:flex lg:w-1/4 flex-col gap-6 shrink-0">
+            <div className="card flex-1 min-h-[300px]">
+              <div className="font-lato font-bold text-[13px] text-secondary-gray/70 mb-4 uppercase tracking-wider">{t.saved_topics_label}</div>
+              <div className="space-y-4">
+                {savedResponses.length > 0 ? (
+                  savedResponses.slice(0, 5).map((save) => (
+                    <div key={save.id} className="flex items-center gap-3 group cursor-pointer" onClick={() => setActiveTab('saved')}>
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition-all group-hover:scale-110 ${save.subject === 'Mathematics' ? 'bg-blue-50 text-blue-600' : save.subject === 'Physics' ? 'bg-teal-50 text-teal-600' : save.subject === 'Chemistry' ? 'bg-orange-50 text-orange-600' : save.subject === 'Biology' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-600'}`}>
+                        {save.subject && save.subject[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-raleway font-bold text-sm truncate group-hover:text-forest transition-colors">{save.question}</div>
+                        <div className="font-poppins text-[10px] text-secondary-gray/60">{new Date(save.timestamp).toLocaleDateString()} • {save.level}</div>
+                      </div>
+                      <span className="text-gold text-lg group-hover:scale-125 transition-transform">★</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-raleway font-bold text-sm truncate group-hover:text-forest transition-colors">{save.question}</div>
-                      <div className="font-poppins text-[10px] text-secondary-gray/60">{new Date(save.timestamp).toLocaleDateString()} • {save.level}</div>
-                    </div>
-                    <span className="text-gold text-lg group-hover:scale-125 transition-transform">★</span>
+                  ))
+                ) : (
+                  <div className="py-12 text-center opacity-30 select-none">
+                    <div className="w-12 h-12 border-2 border-dashed border-near-black/20 rounded-xl mx-auto mb-3" />
+                    <p className="text-xs font-bold uppercase tracking-widest">{t.saved_empty_title}</p>
                   </div>
-                ))
-              ) : (
-                <div className="py-12 text-center opacity-30 select-none">
-                  <div className="w-12 h-12 border-2 border-dashed border-near-black/20 rounded-xl mx-auto mb-3" />
-                  <p className="text-xs font-bold uppercase tracking-widest">{t.saved_empty_title}</p>
-                </div>
-              )}
+                )}
+              </div>
+              <div className="mt-auto pt-6 text-center">
+                <button onClick={() => setActiveTab('saved')} className="text-xs font-poppins font-bold text-secondary-gray border-b-2 border-forest/40 pb-0.5 hover:border-forest transition-all">{t.view_all_library}</button>
+              </div>
             </div>
 
-            <div className="mt-auto pt-6 text-center">
-              <button 
-                onClick={() => setActiveTab('saved')}
-                className="text-xs font-poppins font-bold text-secondary-gray border-b-2 border-forest/40 pb-0.5 hover:border-forest transition-all"
-              >
-                {t.view_all_library}
-              </button>
-            </div>
+            {/* Daily Challenge in sidebar on desktop */}
+            <DailyChallengeWidget 
+              dailyChallenge={dailyChallenge}
+              showChallengeAnswer={showChallengeAnswer}
+              setShowChallengeAnswer={setShowChallengeAnswer}
+              t={t}
+            />
           </div>
         </div>
+
+        {/* Daily Challenge — mobile only, full width below content */}
+        <div className="lg:hidden w-full">
+          <DailyChallengeWidget 
+            dailyChallenge={dailyChallenge}
+            showChallengeAnswer={showChallengeAnswer}
+            setShowChallengeAnswer={setShowChallengeAnswer}
+            t={t}
+          />
+        </div>
+
       </main>
 
-      <footer className="px-10 py-6 text-near-black opacity-60 text-[11px] font-poppins font-medium flex justify-between items-center bg-sage/30">
+      <footer className="px-4 md:px-10 py-6 text-near-black opacity-60 text-[11px] font-poppins font-medium flex justify-between items-center bg-sage/30">
         <span>&copy; 2024 Elimu AI - {t.footer_tag}</span>
         <span>{t.footer_made_for}</span>
       </footer>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 flex h-[70px] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        {(['chat', 'practice', 'curriculum', 'saved'] as const).map(tab => {
+          const isActive = activeTab === tab;
+          const Icon = tab === 'chat' ? Send : tab === 'saved' ? Bookmark : tab === 'practice' ? ClipboardList : BookOpen;
+          return (
+            <button 
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="flex-1 flex flex-col items-center justify-center gap-1 transition-all"
+            >
+              <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-forest text-white' : 'text-secondary-gray opacity-60'}`}>
+                <Icon size={20} />
+              </div>
+              <span className={`text-[10px] font-bold ${isActive ? 'text-forest' : 'text-secondary-gray opacity-60'} ${!isActive ? 'hidden min-[380px]:inline' : ''}`}>
+                {t[`${tab}_tab` as any]}
+              </span>
+              {isActive && <div className="absolute bottom-0 w-8 h-1 bg-gold rounded-t-full" />}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Toast Notification */}
       <AnimatePresence>
@@ -1860,7 +1622,56 @@ interface ResponseCardProps {
   isStreaming?: boolean;
 }
 
-// Sub-component: ResponseCard
+interface DailyChallengeWidgetProps {
+  dailyChallenge: { question: string, answer: string } | null;
+  showChallengeAnswer: boolean;
+  setShowChallengeAnswer: (show: boolean) => void;
+  t: any;
+}
+
+const DailyChallengeWidget: React.FC<DailyChallengeWidgetProps> = ({ dailyChallenge, showChallengeAnswer, setShowChallengeAnswer, t }) => {
+  return (
+    <div className="card relative overflow-hidden group border border-gold/10 hover:border-gold/30 transition-all">
+      <div className="font-lato font-bold text-[13px] text-secondary-gray/70">{t.daily_challenge_label}</div>
+      
+      {!dailyChallenge ? (
+        <div className="space-y-4 py-4">
+          <div className="h-4 bg-gray-100 rounded-full w-full animate-pulse" />
+          <div className="h-4 bg-gray-100 rounded-full w-2/3 animate-pulse" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <h4 className="font-raleway font-bold text-lg leading-snug">{dailyChallenge.question.includes('?') ? dailyChallenge.question.split('?')[0] + '?' : dailyChallenge.question}</h4>
+          {dailyChallenge.question.includes('?') && (
+            <p className="text-sm text-secondary-gray/80 line-clamp-3">
+              {dailyChallenge.question.split('?')[1]}
+            </p>
+          )}
+          
+          <AnimatePresence>
+            {showChallengeAnswer && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                className="bg-gold/5 p-4 rounded-xl text-sm border-l-4 border-gold italic text-near-black font-medium"
+              >
+                {dailyChallenge.answer}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <button 
+            onClick={() => setShowChallengeAnswer(!showChallengeAnswer)}
+            className="w-full py-2 border border-forest text-forest hover:bg-forest/5 font-poppins font-bold rounded-lg text-sm transition-all active:scale-95"
+          >
+            {showChallengeAnswer ? t.hide_answer : t.see_answer}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, question, isSpeaking, onSpeak, isStreaming }) => {
   const sections = parseGeminiResponse(msg.content);
 
@@ -1869,7 +1680,7 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
   const t = translations[currentLang];
   
   return (
-    <div className="card shadow-none">
+    <div className={`card shadow-none transition-all ${isSpeaking ? 'reading-active' : ''}`}>
       {/* Question if it's a saved response/view */}
       {question && (
         <div className="px-4 py-3 bg-sage/10 border-l-4 border-forest mb-4 rounded-r-xl italic text-sm font-medium">
