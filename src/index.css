@@ -1,36 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@700&family=Oswald:wght@700&family=Poppins:ital,wght@0,400;0,500;1,400&family=Raleway:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-sage: #C8DDB8;
-  --color-forest: #1B5E20;
-  --color-near-black: #0D0D0D;
-  --color-secondary-gray: #4A4A4A;
-  --color-gold: #F9A825;
-  --color-light-green: #E8F5E9;
-  --color-light-gold: #FFF8E1;
+  --color-sage: #E8EDE6;
+  --color-forest: #1A3E2B;
+  --color-near-black: #111111;
+  --color-secondary-gray: #6B7280;
+  --color-gold: #D4AF37;
+  --color-light-green: #F2F5F1;
+  --color-light-gold: #FDF9EC;
 
-  --font-oswald: "Oswald", sans-serif;
-  --font-raleway: "Raleway", sans-serif;
-  --font-poppins: "Poppins", sans-serif;
-  --font-lato: "Lato", sans-serif;
+  --font-oswald: "Playfair Display", serif;
+  --font-raleway: "Inter", sans-serif;
+  --font-poppins: "Inter", sans-serif;
+  --font-lato: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 @layer base {
   body {
-    @apply bg-sage text-near-black font-poppins overflow-x-hidden;
+    background-color: #F8F9F7;
+    color: var(--color-near-black);
+    font-family: "Inter", sans-serif;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", serif;
+    letter-spacing: -0.02em;
   }
 }
 
 @keyframes pulse-gold {
-  0% { border-left-color: #F9A825; }
-  50% { border-left-color: #F9A825; box-shadow: 0 0 15px rgba(249,168,37,0.4); }
-  100% { border-left-color: #F9A825; }
+  0% { border-left-color: var(--color-gold); }
+  50% { border-left-color: var(--color-gold); box-shadow: -4px 0 15px rgba(212, 175, 55, 0.2); }
+  100% { border-left-color: var(--color-gold); }
 }
 
 .reading-active {
-  border-left: 4px solid #F9A825 !important;
-  animation: pulse-gold 2s infinite ease-in-out;
+  border-left: 3px solid var(--color-gold) !important;
+  animation: pulse-gold 2.5s infinite ease-in-out;
+  background-color: var(--color-light-gold);
 }
 
 .subjects-grid {
@@ -41,96 +51,188 @@
 }
 
 .card {
-  @apply bg-white rounded-[16px] p-5 flex flex-col gap-3 shadow-none w-full;
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0,0,0,0.04);
+  width: 100%;
 }
 
 .inset-box {
-  @apply bg-light-green rounded-[12px] p-4 italic;
+  background-color: var(--color-light-green);
+  border-radius: 12px;
+  padding: 1rem;
+  font-style: italic;
+  font-family: "Playfair Display", serif;
 }
 
 .badge {
-  @apply bg-gold text-near-black text-[11px] px-2 py-0.5 rounded-full font-bold uppercase;
+  background-color: var(--color-gold);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .forest-btn {
-  @apply bg-forest text-white rounded-[10px] px-6 py-3 font-semibold transition-all hover:bg-forest/90 active:scale-95;
+  background-color: var(--color-forest);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.forest-btn:hover {
+  background-color: #235239;
+  transform: translateY(-1px);
+}
+.forest-btn:active {
+  transform: translateY(1px);
 }
 
 .pill-active {
-  @apply bg-forest text-white rounded-full px-4 py-1.5 transition-all;
+  background-color: var(--color-forest);
+  color: white;
+  border-radius: 9999px;
+  padding: 8px 20px;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .pill-inactive {
-  @apply border border-gray-200 text-secondary-gray rounded-full px-4 py-1.5 transition-all hover:bg-gray-50;
+  border: 1px solid rgba(0,0,0,0.1);
+  color: var(--color-secondary-gray);
+  border-radius: 9999px;
+  padding: 8px 20px;
+  transition: all 0.2s ease;
+}
+.pill-inactive:hover {
+  background-color: rgba(0,0,0,0.03);
+  color: var(--color-near-black);
 }
 
 .markdown-body {
-  @apply text-inherit leading-relaxed font-poppins w-full max-w-none;
+  font-family: inherit;
+  line-height: 1.7;
+  width: 100%;
+  max-w: none;
 }
 
 .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-  @apply font-raleway font-bold text-forest mt-6 mb-3;
+  font-family: "Playfair Display", serif;
+  color: var(--color-forest);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
 }
 
-.markdown-body h1 { @apply text-2xl; }
-.markdown-body h2 { @apply text-xl; }
-.markdown-body h3 { @apply text-lg; }
+.markdown-body h1 { font-size: 1.8rem; }
+.markdown-body h2 { font-size: 1.5rem; }
+.markdown-body h3 { font-size: 1.25rem; }
 
 .markdown-body p {
-  @apply mb-4 leading-relaxed;
+  margin-bottom: 1rem;
 }
 
 .markdown-body strong, .markdown-body b {
-  @apply font-bold text-forest;
+  font-weight: 600;
+  color: var(--color-forest);
 }
 
 .markdown-body blockquote {
-  @apply border-l-4 border-gold pl-4 italic my-6 text-secondary-gray bg-light-gold/30 py-2 rounded-r-lg;
+  border-left: 3px solid var(--color-gold);
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 1.5rem 0;
+  color: var(--color-secondary-gray);
+  background-color: var(--color-light-gold);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-radius: 0 12px 12px 0;
 }
 
 .markdown-body code {
-  @apply bg-light-green text-forest px-1.5 py-0.5 rounded text-[0.9em] font-mono;
+  background-color: var(--color-light-green);
+  color: var(--color-forest);
+  padding: 0.15rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: var(--font-mono);
 }
 
 .markdown-body pre {
-  @apply bg-near-black text-white p-4 rounded-xl my-4 overflow-x-auto;
+  background-color: #1a1a1a;
+  color: #fff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+}
+
+.markdown-body pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
 }
 
 .markdown-body ul {
-  @apply mb-4 ml-6 list-disc;
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+  list-style-type: disc;
 }
 
 .markdown-body ol {
-  @apply mb-4 ml-6 list-decimal;
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+  list-style-type: decimal;
 }
 
 .markdown-body li {
-  @apply mb-2 pl-1;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
 }
 
 .markdown-body hr {
-  @apply my-8 border-t border-sage/30;
+  margin: 2rem 0;
+  border-top: 1px solid rgba(0,0,0,0.1);
 }
 
 .markdown-body table {
-  @apply w-full border-collapse my-6 text-[13px];
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .markdown-body th {
-  @apply bg-sage/10 font-bold text-forest text-left p-2 border border-sage/20;
+  background-color: var(--color-light-green);
+  font-weight: 600;
+  color: var(--color-forest);
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid rgba(26, 62, 43, 0.1);
 }
 
 .markdown-body td {
-  @apply p-2 border border-sage/20 bg-white;
-}
-
-.markdown-body tr:nth-child(even) td {
-  @apply bg-sage/5;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  background-color: #fff;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -138,6 +240,9 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-forest);
+  background: rgba(107, 114, 128, 0.3);
   border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.5);
 }

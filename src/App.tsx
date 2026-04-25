@@ -903,13 +903,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-poppins selection:bg-gold/30">
+    <div className="min-h-screen flex flex-col font-sans selection:bg-gold/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl px-4 md:px-8 py-4 flex justify-between items-center transition-all shadow-sm">
-        <div className="font-oswald font-bold text-xl md:text-2xl uppercase tracking-tighter hover:scale-105 transition-transform cursor-pointer">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl px-4 md:px-8 py-4 flex justify-between items-center transition-all border-b border-gray-200 shadow-sm">
+        <div className="font-serif font-bold text-xl md:text-2xl tracking-tight cursor-pointer flex items-center gap-2">
+          <div className="w-8 h-8 bg-forest rounded-full flex items-center justify-center text-white"><BookOpen size={16}/></div>
           {t.title}
         </div>
-        <nav className="hidden md:flex flex-1 justify-center mx-4 md:mx-8 text-sm font-poppins font-medium">
+        <nav className="hidden md:flex flex-1 justify-center mx-4 md:mx-8 text-sm font-sans font-medium">
           <div className="flex w-full gap-2">
             {(['chat', 'practice', 'curriculum', 'saved'] as const).map(tab => (
               <button 
@@ -922,18 +923,18 @@ export default function App() {
             ))}
           </div>
         </nav>
-        <div className="flex items-center gap-2 text-[10px] md:text-xs font-poppins font-bold whitespace-nowrap">
+        <div className="flex items-center gap-2 text-[10px] md:text-xs font-sans font-bold whitespace-nowrap">
           <span className="w-2 h-2 bg-gold rounded-full shadow-[0_0_8px_rgba(249,168,37,0.8)] animate-pulse" />
           <span className="hidden sm:inline">{t.header_status}</span>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-8 pb-12 px-4 text-center">
-        <h1 className="font-oswald font-bold text-[48px] md:text-[72px] text-near-black leading-[1] m-0 uppercase">
+      <section className="pt-12 pb-14 px-4 text-center">
+        <h1 className="font-serif font-black text-[56px] md:text-[84px] text-near-black leading-none m-0 tracking-tight">
           {t.title}
         </h1>
-        <p className="text-base md:text-xl text-secondary-gray mt-2 font-poppins font-medium max-w-3xl mx-auto opacity-80">
+        <p className="text-base md:text-xl text-secondary-gray mt-4 font-sans font-medium max-w-2xl mx-auto opacity-80">
           {t.subtitle}
         </p>
       </section>
@@ -957,7 +958,7 @@ export default function App() {
                 {/* Input Card — full width of its column */}
                 <div className="card shadow-none border-none w-full">
                   <div className="flex flex-wrap items-center justify-between gap-4">
-                    <span className="font-lato font-bold text-sm text-secondary-gray">{t.ask_label}</span>
+                    <span className="font-sans font-bold text-xs text-secondary-gray uppercase tracking-widest">{t.ask_label}</span>
                     <div className="bg-gray-100 p-1 rounded-full flex gap-1 relative overflow-hidden">
                       {(['English', 'Swahili', 'Sheng'] as Language[]).map((lang) => (
                         <button
@@ -988,7 +989,7 @@ export default function App() {
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
                         placeholder={t.placeholder}
-                        className="w-full border border-gold/40 focus:border-gold rounded-xl p-4 h-[80px] transition-all outline-none resize-none text-base font-poppins placeholder:text-secondary-gray/40 bg-white pr-12"
+                        className="w-full border border-gold/40 focus:border-gold rounded-xl p-4 h-[80px] transition-all outline-none resize-none text-base font-sans placeholder:text-secondary-gray/40 bg-white pr-12"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -1008,11 +1009,11 @@ export default function App() {
 
                     <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1.2fr] gap-3 w-full">
                       <div className="bg-gray-100 rounded-[12px] p-2 px-3 flex flex-col gap-0.5 hover:bg-gray-200 transition-colors cursor-pointer">
-                        <span className="font-lato text-[11px] text-secondary-gray uppercase tracking-wider">{t.subject_label}</span>
+                        <span className="font-sans text-[11px] font-bold text-secondary-gray uppercase tracking-wider">{t.subject_label}</span>
                         <select 
                           value={subject}
                           onChange={(e) => setSubject(e.target.value as Subject)}
-                          className="bg-transparent appearance-none w-full font-poppins font-medium text-sm outline-none cursor-pointer"
+                          className="bg-transparent appearance-none w-full font-sans font-medium text-sm outline-none cursor-pointer"
                         >
                           <option>Mathematics</option>
                           <option>Physics</option>
@@ -1023,11 +1024,11 @@ export default function App() {
                       </div>
 
                       <div className="bg-gray-100 rounded-[12px] p-2 px-3 flex flex-col gap-0.5 hover:bg-gray-200 transition-colors cursor-pointer">
-                        <span className="font-lato text-[11px] text-secondary-gray uppercase tracking-wider">{t.level_label}</span>
+                        <span className="font-sans text-[11px] font-bold text-secondary-gray uppercase tracking-wider">{t.level_label}</span>
                         <select 
                           value={level}
                           onChange={(e) => setLevel(e.target.value as Level)}
-                          className="bg-transparent appearance-none w-full font-poppins font-medium text-sm outline-none cursor-pointer"
+                          className="bg-transparent appearance-none w-full font-sans font-medium text-sm outline-none cursor-pointer"
                         >
                           <option>Class 7-8</option>
                           <option>Form 1-2</option>
@@ -1056,7 +1057,7 @@ export default function App() {
                   {messages.length === 0 && (
                     <div className="text-center py-24 opacity-30">
                       <Sparkles size={64} className="mx-auto mb-4 text-forest" />
-                      <p className="text-2xl font-raleway font-bold italic">{t.empty_chat}</p>
+                      <p className="text-2xl font-serif font-bold italic">{t.empty_chat}</p>
                     </div>
                   )}
                   
@@ -1109,7 +1110,7 @@ export default function App() {
                           onClick={() => setCurrentPracticeSet(set)}
                           className={`shrink-0 text-left p-3 rounded-xl border transition-all w-48 ${currentPracticeSet?.id === set.id ? 'border-forest bg-forest/5 shadow-sm' : 'border-gray-100 bg-white hover:border-forest/30'}`}
                         >
-                          <div className="font-raleway font-bold text-xs truncate mb-1">{set.topic}</div>
+                          <div className="font-serif font-bold text-xs truncate mb-1">{set.topic}</div>
                           <div className="flex items-center gap-1.5 text-[10px] text-secondary-gray italic">
                             <Clock size={10} /> {new Date(set.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
@@ -1121,9 +1122,9 @@ export default function App() {
 
                 {/* Practice form — full width */}
                 <div className="card shadow-none border-none w-full">
-                  <div className="flex items-center gap-2 mb-6">
+                  <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
                     <ClipboardList className="text-forest" size={24} />
-                    <h2 className="font-raleway font-bold text-2xl">{t.practice_title}</h2>
+                    <h2 className="font-serif font-bold text-2xl m-0">{t.practice_title}</h2>
                   </div>
 
                   <div className="space-y-6">
@@ -1133,7 +1134,7 @@ export default function App() {
                         <select 
                           value={subject}
                           onChange={(e) => setSubject(e.target.value as Subject)}
-                          className="bg-transparent font-poppins font-medium text-sm outline-none"
+                          className="bg-transparent font-sans font-medium text-sm outline-none"
                         >
                           <option>Mathematics</option>
                           <option>Physics</option>
@@ -1148,7 +1149,7 @@ export default function App() {
                         <select 
                           value={level}
                           onChange={(e) => setLevel(e.target.value as Level)}
-                          className="bg-transparent font-poppins font-medium text-sm outline-none"
+                          className="bg-transparent font-sans font-medium text-sm outline-none"
                         >
                           <option>Class 7-8</option>
                           <option>Form 1-2</option>
@@ -1165,7 +1166,7 @@ export default function App() {
                         value={practiceTopic}
                         onChange={(e) => setPracticeTopic(e.target.value)}
                         placeholder={t.topic_placeholder}
-                        className="bg-transparent font-poppins font-medium text-sm outline-none w-full"
+                        className="bg-transparent font-sans font-medium text-sm outline-none w-full"
                       />
                     </div>
 
@@ -1201,7 +1202,7 @@ export default function App() {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center bg-gray-100 rounded-xl overflow-hidden p-1">
                           <button onClick={() => setNumQuestions(prev => Math.max(5, prev - 5))} className="p-2 hover:bg-gray-200 text-forest transition-colors rounded-lg"><Minus size={18} /></button>
-                          <div className="w-16 text-center font-bold font-oswald text-xl">{numQuestions}</div>
+                          <div className="w-16 text-center font-bold font-serif text-xl">{numQuestions}</div>
                           <button onClick={() => setNumQuestions(prev => Math.min(30, prev + 5))} className="p-2 hover:bg-gray-200 text-forest transition-colors rounded-lg"><Plus size={18} /></button>
                         </div>
                         <span className="text-[10px] text-secondary-gray italic">(Range: 5 - 30)</span>
@@ -1292,7 +1293,7 @@ export default function App() {
                   <div className="card py-20 text-center gap-4 border-dashed border-2 border-gray-200 bg-transparent shadow-none w-full">
                     <ClipboardList className="mx-auto text-secondary-gray/30" size={64} />
                     <div className="space-y-1">
-                      <h3 className="font-raleway font-bold text-xl text-secondary-gray">{t.practice_empty_title}</h3>
+                      <h3 className="font-serif font-bold text-xl text-secondary-gray">{t.practice_empty_title}</h3>
                       <p className="text-secondary-gray/60 text-sm">{t.practice_empty_text}</p>
                     </div>
                   </div>
@@ -1314,7 +1315,7 @@ export default function App() {
                       <div className="card border-red-200 bg-red-50/30 w-full">
                         <div className="flex items-center gap-2 mb-4">
                           <Zap className="text-red-600" size={20} />
-                          <h3 className="font-raleway font-bold text-lg text-red-900">{t.weak_areas}</h3>
+                          <h3 className="font-serif font-bold text-lg text-red-900">{t.weak_areas}</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {getWeakAreas().map(area => (
@@ -1330,7 +1331,7 @@ export default function App() {
                       <div className="card border-gold/20 bg-gold/5 w-full">
                         <div className="flex items-center gap-2 mb-4">
                           <Heart className="text-gold" size={20} fill="currentColor" />
-                          <h3 className="font-raleway font-bold text-lg">{t.bookmarked_topics || "Bookmarked Topics"}</h3>
+                          <h3 className="font-serif font-bold text-lg">{t.bookmarked_topics || "Bookmarked Topics"}</h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {(Object.entries(curriculumState) as [string, TopicStatus][]).filter(([_, s]) => s.isBookmarked).map(([id, _]) => {
@@ -1351,7 +1352,7 @@ export default function App() {
                         return (
                           <div key={subj} className="card hover:border-gold transition-all group overflow-hidden relative">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><BookOpen size={64} /></div>
-                            <h3 className="font-raleway font-bold text-lg mb-2">{subj}</h3>
+                            <h3 className="font-serif font-bold text-lg mb-2">{subj}</h3>
                             <div className="space-y-3 mt-4">
                               <div className="flex justify-between items-center text-xs font-bold text-secondary-gray uppercase tracking-widest">
                                 <span>{t.study_progress}</span><span>{prog}%</span>
@@ -1372,7 +1373,7 @@ export default function App() {
                   <div className="flex flex-col gap-6 w-full">
                     <div className="flex items-center gap-4">
                       <button onClick={() => setCurriculumView('grid')} className="p-2 hover:bg-gray-100 rounded-full text-secondary-gray transition-all"><RefreshCcw className="rotate-[-45deg]" size={20} /></button>
-                      <h2 className="font-oswald font-bold text-3xl uppercase">{selectedCurriculumSubject}</h2>
+                      <h2 className="font-serif font-bold text-3xl uppercase">{selectedCurriculumSubject}</h2>
                     </div>
                     <div className="flex bg-gray-100 p-1 rounded-full gap-1 overflow-x-auto no-scrollbar w-full">
                       {([1, 2, 3, 4] as const).map(f => (
@@ -1394,7 +1395,7 @@ export default function App() {
                             <div className="flex items-center justify-between gap-4 mb-4">
                               <div className="flex items-center gap-3">
                                 <button onClick={() => handleBookmarkToggle(topic.id)} className={`transition-all ${isBookmarked ? 'text-gold' : 'text-gray-300 hover:text-gold'}`}><Bookmark size={20} fill={isBookmarked ? 'currentColor' : 'none'} /></button>
-                                <span className="font-poppins font-medium text-sm">{topic.name}</span>
+                                <span className="font-sans font-medium text-sm">{topic.name}</span>
                               </div>
                               <button onClick={() => handleTopicStatusCycle(topic.id)} className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all ${status === 'Mastered' ? 'bg-green-50 text-green-600 border-green-200' : status === 'In Progress' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
                                 {status === 'Mastered' ? t.mastered : status === 'In Progress' ? t.in_progress : t.not_started}
@@ -1418,12 +1419,12 @@ export default function App() {
                     {isLoadingCurriculum ? (
                       <div className="py-20 text-center animate-pulse w-full">
                         <div className="w-16 h-16 border-4 border-forest border-t-transparent rounded-full mx-auto mb-4 animate-spin" />
-                        <p className="font-raleway font-bold text-xl">{t.thinking}...</p>
+                        <p className="font-serif font-bold text-xl">{t.thinking}...</p>
                       </div>
                     ) : curriculumContent && (
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`card w-full relative overflow-visible transition-all ${isSpeaking === curriculumContent.title ? 'reading-active' : ''}`}>
                         <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
-                          <h2 className="font-raleway font-bold text-2xl">{curriculumContent.title}</h2>
+                          <h2 className="font-serif font-bold text-2xl">{curriculumContent.title}</h2>
                           <div className="flex gap-2">
                             <button onClick={() => speakText(curriculumContent.content, curriculumContent.title)} className={`p-2 rounded-lg transition-all ${isSpeaking === curriculumContent.title ? 'bg-gold text-white' : 'text-forest hover:bg-sage/10'}`} title={t.read_aloud}>{isSpeaking === curriculumContent.title ? <Square size={20} /> : <Volume2 size={20} />}</button>
                             <button onClick={() => { const dummyPractice: PracticeSet = { id: Date.now().toString(), subject: selectedCurriculumSubject || 'General', topic: curriculumContent.title, level: `Form ${selectedCurriculumForm}` as Level, difficulty: 'Medium', numQuestions: 0, questionTypes: [], includeAnswers: false, content: curriculumContent.content, timestamp: Date.now() }; handleDownloadPDF(dummyPractice); }} className="p-2 text-forest hover:bg-sage/10 rounded-lg transition-all"><Download size={20} /></button>
@@ -1448,12 +1449,12 @@ export default function App() {
                     <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm w-full">
                       <div className="flex items-center gap-3">
                         <span className="w-10 h-10 rounded-full bg-forest text-white flex items-center justify-center font-bold">{currentTestIndex + 1}/5</span>
-                        <h3 className="font-raleway font-bold">Mini Test: {selectedCurriculumSubject}</h3>
+                        <h3 className="font-serif font-bold">Mini Test: {selectedCurriculumSubject}</h3>
                       </div>
                       <div className="flex items-center gap-2 text-red-600 font-bold font-mono"><Clock size={16} /> 04:59</div>
                     </div>
                     <div className="card w-full">
-                      <h4 className="text-xl font-poppins mb-8">{activeTest[currentTestIndex].question}</h4>
+                      <h4 className="text-xl font-sans mb-8">{activeTest[currentTestIndex].question}</h4>
                       <div className="space-y-3">
                         {activeTest[currentTestIndex].options ? (
                           activeTest[currentTestIndex].options.map((opt: string, i: number) => {
@@ -1489,7 +1490,7 @@ export default function App() {
                   <div className="card py-20 text-center gap-6 w-full">
                     <div className="w-20 h-20 bg-sage/20 rounded-full flex items-center justify-center mx-auto text-forest opacity-40"><History size={48} /></div>
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-raleway font-bold">📚 {t.saved_empty_title}</h3>
+                      <h3 className="text-2xl font-serif font-bold">📚 {t.saved_empty_title}</h3>
                       <p className="text-secondary-gray opacity-70">{t.saved_empty_text}</p>
                     </div>
                     <button onClick={() => setActiveTab('chat')} className="bg-forest text-white rounded-[10px] px-6 py-3 font-semibold transition-all hover:bg-forest/90 active:scale-95 max-w-xs mx-auto">{t.start_chat_btn}</button>
@@ -1517,7 +1518,7 @@ export default function App() {
           {/* RIGHT SIDEBAR — 1/4 width, desktop only */}
           <div className="hidden lg:flex lg:w-1/4 flex-col gap-6 shrink-0">
             <div className="card flex-1 min-h-[300px]">
-              <div className="font-lato font-bold text-[13px] text-secondary-gray/70 mb-4 uppercase tracking-wider">{t.saved_topics_label}</div>
+              <div className="font-sans font-bold text-[13px] text-secondary-gray/70 mb-4 uppercase tracking-wider">{t.saved_topics_label}</div>
               <div className="space-y-4">
                 {savedResponses.length > 0 ? (
                   savedResponses.slice(0, 5).map((save) => (
@@ -1526,8 +1527,8 @@ export default function App() {
                         {save.subject && save.subject[0]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-raleway font-bold text-sm truncate group-hover:text-forest transition-colors">{save.question}</div>
-                        <div className="font-poppins text-[10px] text-secondary-gray/60">{new Date(save.timestamp).toLocaleDateString()} • {save.level}</div>
+                        <div className="font-serif font-bold text-sm truncate group-hover:text-forest transition-colors">{save.question}</div>
+                        <div className="font-sans text-[10px] text-secondary-gray/60">{new Date(save.timestamp).toLocaleDateString()} • {save.level}</div>
                       </div>
                       <span className="text-gold text-lg group-hover:scale-125 transition-transform">★</span>
                     </div>
@@ -1540,7 +1541,7 @@ export default function App() {
                 )}
               </div>
               <div className="mt-auto pt-6 text-center">
-                <button onClick={() => setActiveTab('saved')} className="text-xs font-poppins font-bold text-secondary-gray border-b-2 border-forest/40 pb-0.5 hover:border-forest transition-all">{t.view_all_library}</button>
+                <button onClick={() => setActiveTab('saved')} className="text-xs font-sans font-bold text-secondary-gray border-b-2 border-forest/40 pb-0.5 hover:border-forest transition-all">{t.view_all_library}</button>
               </div>
             </div>
 
@@ -1566,7 +1567,7 @@ export default function App() {
 
       </main>
 
-      <footer className="px-4 md:px-10 py-6 text-near-black opacity-60 text-[11px] font-poppins font-medium flex justify-between items-center bg-sage/30">
+      <footer className="px-4 md:px-10 py-6 text-near-black opacity-60 text-[11px] font-sans font-medium flex justify-between items-center bg-sage/30">
         <span>&copy; 2024 Elimu AI - {t.footer_tag}</span>
         <span>{t.footer_made_for}</span>
       </footer>
@@ -1632,7 +1633,7 @@ interface DailyChallengeWidgetProps {
 const DailyChallengeWidget: React.FC<DailyChallengeWidgetProps> = ({ dailyChallenge, showChallengeAnswer, setShowChallengeAnswer, t }) => {
   return (
     <div className="card relative overflow-hidden group border border-gold/10 hover:border-gold/30 transition-all">
-      <div className="font-lato font-bold text-[13px] text-secondary-gray/70">{t.daily_challenge_label}</div>
+      <div className="font-sans font-bold text-[13px] text-secondary-gray/70">{t.daily_challenge_label}</div>
       
       {!dailyChallenge ? (
         <div className="space-y-4 py-4">
@@ -1641,7 +1642,7 @@ const DailyChallengeWidget: React.FC<DailyChallengeWidgetProps> = ({ dailyChalle
         </div>
       ) : (
         <div className="space-y-3">
-          <h4 className="font-raleway font-bold text-lg leading-snug">{dailyChallenge.question.includes('?') ? dailyChallenge.question.split('?')[0] + '?' : dailyChallenge.question}</h4>
+          <h4 className="font-serif font-bold text-lg leading-snug">{dailyChallenge.question.includes('?') ? dailyChallenge.question.split('?')[0] + '?' : dailyChallenge.question}</h4>
           {dailyChallenge.question.includes('?') && (
             <p className="text-sm text-secondary-gray/80 line-clamp-3">
               {dailyChallenge.question.split('?')[1]}
@@ -1662,7 +1663,7 @@ const DailyChallengeWidget: React.FC<DailyChallengeWidgetProps> = ({ dailyChalle
 
           <button 
             onClick={() => setShowChallengeAnswer(!showChallengeAnswer)}
-            className="w-full py-2 border border-forest text-forest hover:bg-forest/5 font-poppins font-bold rounded-lg text-sm transition-all active:scale-95"
+            className="w-full py-2 border border-forest text-forest hover:bg-forest/5 font-sans font-bold rounded-lg text-sm transition-all active:scale-95"
           >
             {showChallengeAnswer ? t.hide_answer : t.see_answer}
           </button>
@@ -1691,7 +1692,7 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
       {/* Header of the card */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="font-lato font-bold text-sm tracking-widest text-secondary-gray uppercase">
+          <span className="font-sans font-bold text-sm tracking-widest text-secondary-gray uppercase">
             04. {msg.subject || 'General'} • {msg.level || 'Form 3-4'}
           </span>
           {msg.languageMode === 'Sheng' && (
@@ -1706,7 +1707,7 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
           >
             {isSpeaking ? <Square size={16} /> : <Volume2 size={16} />}
           </button>
-          <span className="text-secondary-gray/50 text-[11px] font-poppins">
+          <span className="text-secondary-gray/50 text-[11px] font-sans">
             {formatTime(msg.timestamp)}
           </span>
         </div>
@@ -1726,7 +1727,7 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
             if (section.type === 'definition') {
               return (
                 <div key={idx} className="space-y-1">
-                  <h4 className="font-raleway font-bold text-base">📖 Simple Definition</h4>
+                  <h4 className="font-serif font-bold text-base">📖 Simple Definition</h4>
                   <div 
                     className="text-sm leading-relaxed text-near-black markdown-body"
                     dangerouslySetInnerHTML={{ __html: renderedContent }}
@@ -1737,9 +1738,9 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
             if (section.type === 'analogy') {
               return (
                 <div key={idx} className="inset-box !not-italic">
-                  <h4 className="font-raleway font-bold text-sm mb-1 text-forest">🇰🇪 Local Analogy</h4>
+                  <h4 className="font-serif font-bold text-sm mb-1 text-forest">🇰🇪 Local Analogy</h4>
                   <div 
-                    className="text-near-black font-poppins italic text-sm leading-relaxed markdown-body"
+                    className="text-near-black font-sans italic text-sm leading-relaxed markdown-body"
                     dangerouslySetInnerHTML={{ __html: renderedContent }}
                   />
                 </div>
@@ -1748,7 +1749,7 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
             if (section.type === 'step-by-step') {
               return (
                 <div key={idx} className="space-y-2">
-                  <h4 className="font-raleway font-bold text-base">🔢 Step-by-Step</h4>
+                  <h4 className="font-serif font-bold text-base">🔢 Step-by-Step</h4>
                   <div 
                     className="markdown-body text-sm"
                     dangerouslySetInnerHTML={{ __html: renderedContent }}
@@ -1759,7 +1760,7 @@ const ResponseCard: React.FC<ResponseCardProps> = ({ msg, isSaved, onSave, quest
             if (section.type === 'practice') {
               return (
                 <div key={idx} className="bg-light-gold rounded-xl p-4 border border-dashed border-gold">
-                  <h4 className="font-raleway font-bold text-sm mb-2">✏️ Practice Question</h4>
+                  <h4 className="font-serif font-bold text-sm mb-2">✏️ Practice Question</h4>
                   <div 
                     className="text-near-black font-medium text-[13px] markdown-body"
                     dangerouslySetInnerHTML={{ __html: renderedContent }}
