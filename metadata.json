@@ -1,0 +1,6 @@
+{
+  "name": "Elimu AI - STEM Tutor",
+  "description": "A smart, friendly STEM tutor for Kenyan students, powered by Gemini 2.0. Feature-rich with local analogies and bilingual support.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
